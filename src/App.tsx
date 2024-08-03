@@ -20,6 +20,7 @@ export default function App() {
           <Scene />
 
           <Effects disableGamma>
+            {/* @ts-ignore */}
             <unrealBloomPass args={[undefined, 0.3, 1, 0]} />
           </Effects>
         </Suspense>
