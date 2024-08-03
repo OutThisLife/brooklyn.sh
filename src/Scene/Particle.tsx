@@ -18,7 +18,7 @@ export default function Particle({
     const delay = seed * 1.8 + 0.2
     const scalar = seed * 0.05 - 0.05
 
-    const settings = () => ({
+    const fn = () => ({
       [Math.random() < 0.5 ? 'x' : 'z']: `+=${Math.PI * 0.5}`,
       ease: ['power2.inOut', 'power3.inOut', 'power4.inOut'][
         Math.floor(seed * 3)
@@ -44,10 +44,10 @@ export default function Particle({
           onComplete: () => void gsap.set(ref.current?.scale, init)
         })
       },
-      onRepeat: () => void tl.clear().to(ref.current?.rotation, settings())
+      onRepeat: () => void tl.clear().to(ref.current?.rotation, fn())
     })
 
-    tl.clear().to(ref.current?.rotation, settings())
+    tl.clear().to(ref.current?.rotation, fn())
 
     return () => void tl.kill()
   }, [])

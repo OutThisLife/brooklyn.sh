@@ -1,11 +1,11 @@
 import { useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
-import { atom } from 'nanostores'
 import { useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { type WebGLProgramParametersWithUniforms } from 'three'
+import { $output } from './Output'
 
-const vertex = `
+export const vertex = `
 vec4 mvPosition = vec4(transformed, 1);
 
 #ifdef USE_INSTANCING
@@ -25,7 +25,7 @@ mvPosition = modelViewMatrix * mvPosition;
 gl_Position = projectionMatrix * mvPosition;
 `
 
-const fragment = `
+export const fragment = `
 #include <map_fragment>
 
 vec2 st = vUv * 2. - .5;
@@ -72,8 +72,6 @@ vec2 mv = (vMouse - p).xy;
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.23, d); 
 }
 `
-
-export const $output = atom<string>(`${vertex}\n${fragment}`)
 
 export default function Material() {
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])

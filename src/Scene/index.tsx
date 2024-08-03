@@ -1,31 +1,15 @@
-import { useStore } from '@nanostores/react'
-import { Instances, Text } from '@react-three/drei'
+import { Instances } from '@react-three/drei'
 import { lazy } from 'react'
-import { $output } from './Material'
 
-const gridSize = 10
-const spacing = 0.4
-
-const Particle = lazy(() => import('./Particle'))
-const Material = lazy(() => import('./Material'))
 const Geometry = lazy(() => import('./Geometry'))
-
-function Output() {
-  const output = useStore($output)
-
-  return (
-    <Text
-      anchorX="right"
-      position={[0, 0, 2]}
-      fillOpacity={0.25}
-      fontSize={0.02}
-      letterSpacing={-0.03}>
-      {output}
-    </Text>
-  )
-}
+const Material = lazy(() => import('./Material'))
+const Output = lazy(() => import('./Output'))
+const Particle = lazy(() => import('./Particle'))
 
 export default function Scene() {
+  const gridSize = 10
+  const spacing = 0.4
+
   return (
     <>
       <group rotation={[Math.PI / 5, -Math.PI / 4, 0]}>
