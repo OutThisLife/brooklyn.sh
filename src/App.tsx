@@ -28,9 +28,8 @@ export default function App() {
 
       <div
         id="output"
-        style={{ overflow: 'overlay' }}
         className={clsx(
-          'fixed inset-0 p-5 select-none',
+          'fixed inset-0 p-5 overflow-hidden pointer-events-none',
           'text-xs font-mono whitespace-pre-wrap break-words tracking-tighter',
           'mix-blend-hard-light'
         )}

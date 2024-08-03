@@ -20,7 +20,7 @@
 }
 
 html {
-  @apply font-sans tracking-tight;
+  @apply font-sans tracking-tight cursor-none;
 
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
