@@ -31,7 +31,7 @@ export default function App() {
         className={clsx(
           'fixed inset-0 p-5 overflow-hidden pointer-events-none',
           'text-xs font-mono whitespace-pre-wrap break-words tracking-tighter',
-          'mix-blend-hard-light'
+          'text-[#e55a95]'
         )}
       />
     </>

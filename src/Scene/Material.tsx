@@ -1,11 +1,81 @@
 import { useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import { atom } from 'nanostores'
 import { useCallback, useMemo } from 'react'
 import * as THREE from 'three'
 import { type WebGLProgramParametersWithUniforms } from 'three'
 
+const vertex = `
+vec4 mvPosition = vec4(transformed, 1);
+
+#ifdef USE_INSTANCING
+  vec4 instanceOrigin = instanceMatrix * vec4(vec3(0), 1);
+  vec4 worldInstanceOrigin = modelMatrix * instanceOrigin;
+
+  mvPosition = instanceMatrix * mvPosition;
+  vPos = mvPosition.xyz;
+  vMouse = uMouse - (mvPosition - instanceOrigin).xyz;
+
+#else
+  vPos = position;
+  vMouse = uMouse - position;
+#endif
+
+mvPosition = modelViewMatrix * mvPosition;
+gl_Position = projectionMatrix * mvPosition;
+`
+
+const fragment = `
+#include <map_fragment>
+
+vec2 st = vUv * 2. - .5;
+vec3 q = vPosition.xyz;
+vec3 p = (modelMatrix * vec4(vPos, 1)).xyz;
+vec2 mv = (vMouse - p).xy;
+
+{
+  float isTop = step(.45, q.y);
+  float isBottom = step(q.y, -.45);
+  float isFront = step(.45, q.z);
+  float isBack = step(q.z, -.45);
+  float isRight = step(.45, q.x);
+  float isLeft = step(q.x, -.45);
+
+  vec2 p = st;
+  p = rotateUV(p, length(mv) * PI, vec2(.5));
+  p = rotateUV(p, uTime * .15, vec2(.5));
+
+  vec4 lin = mix(
+    vec4(0),
+    mix(
+      texture2D(uChannel0, p),
+      texture2D(uChannel1, p),
+      isBottom
+    ),
+    min(isBottom + isBack, 1.)
+  );
+  
+  float d = 1. - smoothstep(.2, .745, length(mv));
+  lin.rgb = mix(lin.rgb, 1. - lin.rgb, d);
+
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.2), smoothstep(1.5, 0., distance(abs(st), vec2(1, .5))));
+  diffuseColor = mix(diffuseColor, vec4(lin.rgb * 2., 1), pow(lin.a, 4.));
+}
+
+{
+  float d = 1. - smoothstep(-.2, .6, length(mv));
+  float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+
+  vec3 lin = vec3(1. - lum);
+  lin = diffuseColor.rgb + ( 1. - 2. * lum);
+  
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.23, d); 
+}
+`
+
+export const $output = atom<string>(`${vertex}\n${fragment}`)
+
 export default function Material() {
-  const $output = useMemo(() => document.getElementById('output')!, [])
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
 
   const uniforms = useMemo(
@@ -33,48 +103,13 @@ export default function Material() {
           '#include <common>',
           `
           #include <common>
-          uniform vec3 uMouse;
-
           varying vec3 vPos;
+          varying vec3 vMouse;
+
+          uniform vec3 uMouse;
           `
         )
-        .replace(
-          '#include <project_vertex>',
-          `
-          vec4 mvPosition = vec4(transformed, 1);
-
-          #ifdef USE_INSTANCING
-
-            mvPosition = instanceMatrix * mvPosition;
-            vPos = mvPosition.xyz;
-
-          #endif
-
-          mvPosition = modelViewMatrix * mvPosition;
-          gl_Position = projectionMatrix * mvPosition;
-          `
-        )
-        .replace(
-          '#include <begin_vertex>',
-          `
-          #include <begin_vertex>
-
-          {
-            const float maxD = 2.;
-            const float amp = .04;
-            
-            vec3 p = (modelMatrix * vec4(position, 1.0)).xyz;
-            vec3 mv = uMouse - p;
-            mv.z = .5;
-
-            float d = length(mv) - .1;
-            d = 1. - smoothstep(0., maxD, d);
-            d *= amp;
-
-            transformed += normalize(mv) * d;
-          }
-          `
-        )
+        .replace('#include <project_vertex>', vertex)
 
       v.fragmentShader = v.fragmentShader
         .replace(
@@ -83,6 +118,7 @@ export default function Material() {
           #include <common>
 
           varying vec3 vPos;
+          varying vec3 vMouse;
 
           uniform mat4 modelMatrix;
           uniform float uTime;
@@ -98,61 +134,14 @@ export default function Material() {
           }
           `
         )
-        .replace(
-          '#include <map_fragment>',
-          `
-          #include <map_fragment>
-
-          vec3 q = vPosition.xyz;
-          vec2 p = vUv * 2. - .5;
-          vec2 mv = uMouse.xy * 2. - 1.;
-
-          {
-            float isTop = step(.45, q.y);
-            float isBottom = step(q.y, -.45);
-            float isFront = step(.45, q.z);
-            float isBack = step(q.z, -.45);
-            float isRight = step(.45, q.x);
-            float isLeft = step(q.x, -.45);
-
-            p = rotateUV(p, distance(p, mv) * .2, vec2(.5));
-            p = rotateUV(p, uTime * .15, vec2(.5));
-
-            vec4 lin = mix(
-              vec4(0),
-              mix(
-                texture2D(uChannel0, p),
-                texture2D(uChannel1, p),
-                isBottom
-              ),
-              min(isBottom + isBack, 1.)
-            );
-
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.85), smoothstep(1.5, 0., distance(abs(p), vec2(1, .5))));
-            diffuseColor = mix(diffuseColor, vec4(lin.rgb * 2., 1), pow(lin.a, 4.));
-          }
-
-          {
-            vec3 p = (modelMatrix * vec4(vPos, 1.0)).xyz;
-            vec3 mv = uMouse - p;
-            mv.z = 0.;
-            
-            float d = length(mv);
-            d = 1. - step(.05, d);
-
-            // diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0, 1, 0), d);
-          }
-          `
-        )
-
-      $output.innerText = `${v.fragmentShader}`
+        .replace('#include <map_fragment>', fragment)
     },
     []
   )
 
   useFrame(({ pointer, clock, camera, scene }) => {
     uniforms.uMouse.value.lerp(
-      new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera),
+      new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera).setZ(0),
       0.03
     )
 
@@ -176,14 +165,28 @@ export default function Material() {
     scene
       .getObjectByName('cursor')
       ?.position.copy(uniforms.uMouse.value.setZ(2))
+
+    $output.set(
+      `${vertex}\n${fragment}`
+        .replace(
+          /uMouse/gm,
+          `vec3(${uniforms.uMouse.value
+            .toArray()
+            .map(i => i.toFixed(2))
+            .join(', ')})`
+        )
+        .replace(/uTime/gm, uniforms.uTime.value.toFixed(2))
+        .trim()
+    )
   })
 
   return (
-    <meshStandardMaterial
-      key={Math.random()}
-      roughness={0.5}
-      metalness={0}
-      {...{ onBeforeCompile }}
-    />
+    <>
+      <meshStandardMaterial
+        roughness={0.5}
+        metalness={0}
+        {...{ onBeforeCompile }}
+      />
+    </>
   )
 }
