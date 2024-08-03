@@ -11,8 +11,16 @@ const Particle = lazy(() => import('./Particle'))
 export default function Scene() {
   const ref = useRef<THREE.Group>(null!)
 
-  const { gridSize, spacing } = useControls({
+  const { gridSize, size, spacing } = useControls({
     gridSize: { label: 'Grid Size', max: 20, min: 1, value: 10 },
+    size: {
+      disabled: true,
+      label: 'Cell Size',
+      max: 1,
+      min: 0.1,
+      step: 0.1,
+      value: 1
+    },
     spacing: { label: 'Spacing', max: 1, min: 0.1, value: 0.4 }
   })
 
@@ -46,7 +54,7 @@ export default function Scene() {
     <>
       <group rotation={[Math.PI / 5, -Math.PI / 4, 0]} {...{ ref }}>
         <Instances range={gridSize ** 3}>
-          <Geometry />
+          <Geometry {...{ size }} />
           <Material />
 
           {particles}
