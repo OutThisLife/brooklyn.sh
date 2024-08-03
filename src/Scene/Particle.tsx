@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react'
 
 export default function Particle({
   id = 0,
-  scale = 1,
+  scale,
   seed = Math.random(),
   ...props
 }: ParticleProps) {
@@ -59,7 +59,7 @@ export default function Particle({
     }
   }, [gridSize, id])
 
-  return <Instance {...{ color, ref, ...props }} />
+  return <Instance {...{ color, ref, scale, ...props }} />
 }
 
 interface ParticleProps extends InstanceProps {
