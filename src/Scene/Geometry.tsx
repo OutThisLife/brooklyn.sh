@@ -1,16 +1,16 @@
 import { createShape, eps } from '../../utils'
 
-export default function Geometry({ size = 1 }: { size?: number }) {
+export default function Geometry() {
   return (
     <extrudeGeometry
       args={[
-        createShape(size, size, 0.175),
+        createShape(1, 1, 0.175),
         {
           bevelEnabled: true,
           bevelSegments: 32,
           bevelSize: 0.15,
           curveSegments: 32,
-          depth: size - 0.175 - eps
+          depth: 1 - 0.175 - eps
         }
       ]}
     />

@@ -2,20 +2,27 @@ import type { InstanceProps } from '@react-three/drei'
 import { Instance } from '@react-three/drei'
 import gsap from 'gsap'
 import { useControls } from 'leva'
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 export default function Particle({
   id = 0,
-  scale,
   seed = Math.random(),
   ...props
 }: ParticleProps) {
   const ref = useRef<any>(null!)
 
-  const { color, gridSize } = useControls({
+  const { color, gridSize, spacing } = useControls({
     color: { label: 'Color', value: '#f51155' },
-    gridSize: { label: 'Grid Size', max: 20, min: 1, step: 2, value: 10 }
+    gridSize: { label: 'Grid Size', max: 20, min: 1, step: 2, value: 10 },
+    spacing: { label: 'Spacing', max: 1, min: 0.1, value: 0.4 }
   })
+
+  const scale = useMemo(() => {
+    const x = 10 * 0.4
+    const y = gridSize * spacing
+
+    return 1.2 / (x * (y / x))
+  }, [gridSize, spacing])
 
   useEffect(() => {
     const duration = Math.PI / 2 + seed * Math.PI
@@ -57,9 +64,11 @@ export default function Particle({
     if (id === Math.round(gridSize ** 3 * 0.434)) {
       ref.current?.color?.set(0xffffff)
     }
-  }, [gridSize, id])
 
-  return <Instance {...{ color, ref, scale, ...props }} />
+    ref.current?.scale?.setScalar(scale)
+  }, [gridSize, id, scale])
+
+  return <Instance {...{ color, ref, ...props }} />
 }
 
 interface ParticleProps extends InstanceProps {
