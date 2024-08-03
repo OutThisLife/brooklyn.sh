@@ -58,7 +58,7 @@ export default function Material() {
           float isLeft = step(q.x, -.45);
 
           p = rotateUV(p, distance(p, mv) * .2, vec2(.5));
-          p = rotateUV(p, uTime * 2., vec2(.5));
+          p = rotateUV(p, uTime * .15, vec2(.5));
 
           vec4 lin = mix(
             vec4(0),
