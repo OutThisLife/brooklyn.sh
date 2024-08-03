@@ -29,7 +29,9 @@ export default function Particle({
       defaults: { duration, ease: 'power2.inOut', delay },
       repeat: -1,
       repeatDelay: 2 + seed,
-      onStart: () =>
+      onStart: () => {
+        const init = ref.current?.scale?.clone()
+
         void gsap.to(ref.current?.scale, {
           delay,
           duration: 2,
@@ -38,8 +40,10 @@ export default function Particle({
           x: `+=${scalar}`,
           y: `+=${scalar}`,
           yoyo: true,
-          z: `+=${scalar}`
-        }),
+          z: `+=${scalar}`,
+          onComplete: () => void gsap.set(ref.current?.scale, init)
+        })
+      },
       onRepeat: () => void tl.clear().to(ref.current?.rotation, settings())
     })
 

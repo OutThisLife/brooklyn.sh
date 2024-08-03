@@ -30,6 +30,15 @@ export default function Material() {
 
       v.vertexShader = v.vertexShader
         .replace(
+          '#include <common>',
+          `
+          #include <common>
+          uniform vec3 uMouse;
+
+          varying vec3 vPos;
+          `
+        )
+        .replace(
           '#include <project_vertex>',
           `
           vec4 mvPosition = vec4(transformed, 1);
@@ -37,19 +46,12 @@ export default function Material() {
           #ifdef USE_INSTANCING
 
             mvPosition = instanceMatrix * mvPosition;
-            vPosition = mvPosition.xyz;
+            vPos = mvPosition.xyz;
 
           #endif
 
           mvPosition = modelViewMatrix * mvPosition;
           gl_Position = projectionMatrix * mvPosition;
-          `
-        )
-        .replace(
-          '#include <common>',
-          `
-          #include <common>
-          uniform vec3 uMouse;
           `
         )
         .replace(
@@ -79,6 +81,8 @@ export default function Material() {
           '#include <common>',
           `
           #include <common>
+
+          varying vec3 vPos;
 
           uniform mat4 modelMatrix;
           uniform float uTime;
@@ -129,7 +133,7 @@ export default function Material() {
           }
 
           {
-            vec3 p = (modelMatrix * vec4(vPosition, 1.0)).xyz;
+            vec3 p = (modelMatrix * vec4(vPos, 1.0)).xyz;
             vec3 mv = uMouse - p;
             mv.z = 0.;
             
