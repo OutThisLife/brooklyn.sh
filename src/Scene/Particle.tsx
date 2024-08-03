@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react'
 
 export default function Particle({
   id = 0,
+  scale = 1,
   seed = Math.random(),
   ...props
 }: ParticleProps) {
@@ -31,21 +32,18 @@ export default function Particle({
     const tl = gsap.timeline({
       defaults: { delay, duration, ease: 'power2.inOut' },
       onRepeat: () => void tl.clear().to(ref.current?.rotation, fn()),
-      onStart: () => {
-        const init = ref.current?.scale?.clone()
-
-        gsap.to(ref.current?.scale, {
+      onStart: () =>
+        void gsap.to(ref.current?.scale, {
           delay,
           duration: 2,
           ease: 'sine.inOut',
-          onComplete: () => void gsap.set(ref.current?.scale, init),
+          onComplete: () => void gsap.set(ref.current?.scale, scale as any),
           repeat: 1,
           x: `+=${scalar}`,
           y: `+=${scalar}`,
           yoyo: true,
           z: `+=${scalar}`
-        })
-      },
+        }),
       repeat: -1,
       repeatDelay: 2 + seed
     })
