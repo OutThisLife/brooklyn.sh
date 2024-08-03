@@ -22,7 +22,7 @@ export default function Output() {
       max: 1,
       min: 0,
       step: 0.01,
-      value: 0
+      value: 0.1
     }
   })
 
