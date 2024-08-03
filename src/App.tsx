@@ -38,6 +38,7 @@ export default function App() {
       </Canvas>
 
       <Leva
+        collapsed
         theme={{ colors: { accent2: '#ec4899' } }}
         titleBar={{ filter: false }}
       />
