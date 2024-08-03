@@ -1,38 +1,45 @@
-import { Effects, Environment } from '@react-three/drei'
 import { Canvas, extend } from '@react-three/fiber'
-import clsx from 'clsx'
+import { button, Leva, useControls } from 'leva'
 import { lazy, Suspense } from 'react'
 import { FilmPass, LUTPass, UnrealBloomPass, WaterPass } from 'three-stdlib'
 
-extend({ WaterPass, UnrealBloomPass, FilmPass, LUTPass })
+extend({ FilmPass, LUTPass, UnrealBloomPass, WaterPass })
 
 const Scene = lazy(() => import('./Scene'))
+const Env = lazy(() => import('./Env'))
 
 export default function App() {
+  useControls('(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧', {
+    'Email Me': button(() =>
+      window.open('mailto:brooklyn.bb.nicholson@gmail.com', '_blank')
+    ),
+    GitHub: button(() =>
+      window.open('//github.com/outthislife', '_blank', 'noopener,noreferrer')
+    ),
+    LinkedIn: button(() =>
+      window.open(
+        '//linkedin.com/in/bbbrooklyn',
+        '_blank',
+        'noopener,noreferrer'
+      )
+    ),
+    Resume: button(() =>
+      window.open('/resume.pdf', '_blank', 'noopener,noreferrer')
+    )
+  })
+
   return (
     <>
-      <Canvas orthographic camera={{ zoom: 600 }}>
-        <color attach="background" args={['#fff']} />
-        <fogExp2 attach="fog" args={['#f800a8', 0.08]} />
-
+      <Canvas camera={{ zoom: 600 }} orthographic>
         <Suspense>
-          <Environment preset="city" environmentIntensity={0.24} />
           <Scene />
-
-          <Effects disableGamma>
-            {/* @ts-ignore */}
-            <unrealBloomPass args={[undefined, 0.3, 1, 0]} />
-          </Effects>
+          <Env />
         </Suspense>
       </Canvas>
 
-      <div
-        id="output"
-        className={clsx(
-          'fixed inset-0 p-5 overflow-hidden pointer-events-none',
-          'text-xs font-mono whitespace-pre-wrap break-words tracking-tighter',
-          'text-[#e55a95]'
-        )}
+      <Leva
+        theme={{ colors: { accent2: '#ec4899' } }}
+        titleBar={{ filter: false }}
       />
     </>
   )

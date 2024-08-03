@@ -1,4 +1,5 @@
 import { useTexture } from '@react-three/drei'
+import type { MeshStandardMaterialProps } from '@react-three/fiber'
 import { useFrame } from '@react-three/fiber'
 import { useCallback, useMemo } from 'react'
 import * as THREE from 'three'
@@ -73,7 +74,7 @@ vec2 mv = (vMouse - p).xy;
 }
 `
 
-export default function Material() {
+export default function Material(props: MeshStandardMaterialProps) {
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
 
   const uniforms = useMemo(
@@ -90,8 +91,8 @@ export default function Material() {
     (v: WebGLProgramParametersWithUniforms) => {
       v.defines = {
         ...v.defines,
-        USE_UV: true,
-        USE_ALPHAHASH: true
+        USE_ALPHAHASH: true,
+        USE_UV: true
       }
 
       v.uniforms = { ...v.uniforms, ...uniforms }
@@ -137,7 +138,7 @@ export default function Material() {
     []
   )
 
-  useFrame(({ pointer, clock, camera, scene }) => {
+  useFrame(({ camera, clock, pointer, scene }) => {
     uniforms.uMouse.value.lerp(
       new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera).setZ(0),
       0.03
@@ -148,8 +149,8 @@ export default function Material() {
     if (!scene.getObjectByName('cursor')) {
       const mat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
-        transparent: true,
-        opacity: 0.1
+        opacity: 0.1,
+        transparent: true
       })
 
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.01), mat)
@@ -181,9 +182,10 @@ export default function Material() {
   return (
     <>
       <meshStandardMaterial
-        roughness={0.5}
+        key={`${vertex}.${fragment}`}
         metalness={0}
-        {...{ onBeforeCompile }}
+        roughness={0.5}
+        {...{ onBeforeCompile, ...props }}
       />
     </>
   )

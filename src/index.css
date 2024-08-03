@@ -53,3 +53,11 @@ strong {
 ::-webkit-scrollbar-thumb {
   @apply bg-white
 }
+
+#root > div[class*="leva"] {
+  @apply absolute top-auto bottom-5 right-5;
+
+  button {
+    @apply px-2 font-medium font-sans;
+  }
+}
