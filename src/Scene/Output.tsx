@@ -18,9 +18,10 @@ export default function Output() {
   return (
     <group position={[-w, h, 2]}>
       <Text anchorX="left" anchorY="top" fontSize={0.02} fontWeight={500}>
-        I am a full stack engineer and have been coding since I was ~12.
+        I am a full stack engineer{'\n'}
+        &amp; have been coding since I was ~12
         {'\n'}
-        You can find me on the right! I'd love work on together &lt;3
+        w/ over 10 years of professional experience
       </Text>
 
       <Text
@@ -29,7 +30,7 @@ export default function Output() {
         fillOpacity={0.25}
         fontSize={0.02}
         letterSpacing={-0.03}>
-        {'\n\n\n'}
+        {'\n\n\n\n'}
         {output}
       </Text>
     </group>
