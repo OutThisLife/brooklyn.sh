@@ -139,9 +139,8 @@ export default function Material(props: MeshStandardMaterialProps) {
   )
 
   useFrame(({ camera, clock, pointer, scene }) => {
-    uniforms.uMouse.value.lerp(
-      new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera).setZ(0),
-      0.03
+    uniforms.uMouse.value.copy(
+      new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera).setZ(0)
     )
 
     uniforms.uTime.value = clock.getElapsedTime()
