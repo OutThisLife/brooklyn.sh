@@ -18,15 +18,15 @@ export default function FX() {
           max: 2,
           min: 0,
           step: 0.01,
-          value: 0.9
+          value: 0.95
         },
         bloomStrength: {
           max: 3,
           min: 0,
           step: 0.01,
-          value: 1.8
+          value: .25
         },
-        bloomThreshold: { max: 1, min: 0, step: 0.01, value: 0.12 },
+        bloomThreshold: { max: 1, min: 0, step: 0.01, value: 0.01 },
         enableBloom: { value: true }
       }),
       dithering: folder({
