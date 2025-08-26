@@ -6,11 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "pnpm lint:eslint",
-    "lint:eslint": "eslint --fix src/**/",
-    "lint:types": "tsc --noEmit",
-    "prettier:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
-    "prettier:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
+    "fix": "eslint --fix src/**/",
+    "fmt": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
+    "check": "tsc --noEmit",
     "preview": "vite preview",
     "start": "pnpm run preview"
   },

@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { type WebGLProgramParametersWithUniforms } from 'three'
 import { $output } from './Output'
 
-export const vertex = `
+export const vertex = /* glsl */ `
 vec4 mvPosition = vec4(transformed, 1);
 
 #ifdef USE_INSTANCING
@@ -26,7 +26,7 @@ mvPosition = modelViewMatrix * mvPosition;
 gl_Position = projectionMatrix * mvPosition;
 `
 
-export const fragment = `
+export const fragment = /* glsl */ `
 #include <map_fragment>
 
 vec2 st = vUv * 2. - .5;

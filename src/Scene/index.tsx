@@ -7,6 +7,7 @@ const Geometry = lazy(() => import('./Geometry'))
 const Material = lazy(() => import('./Material'))
 const Output = lazy(() => import('./Output'))
 const Particle = lazy(() => import('./Particle'))
+const FX = lazy(() => import('./effects'))
 
 export default function Scene() {
   const ref = useRef<THREE.Group>(null!)

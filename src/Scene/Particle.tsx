@@ -44,7 +44,7 @@ export default function Particle({
           delay,
           duration: 2,
           ease: 'sine.inOut',
-          onComplete: () => void gsap.set(ref.current?.scale, scale as any),
+          onComplete: () => void gsap.set(ref.current?.scale, { x: scale, y: scale, z: scale }),
           repeat: 1,
           x: `+=${scalar}`,
           y: `+=${scalar}`,

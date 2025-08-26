@@ -40,7 +40,8 @@ export default function Output() {
         anchorY="top"
         fontSize={0.02}
         letterSpacing={-0.03}
-        {...{ fillOpacity }}>
+        {...{ fillOpacity }}
+      >
         {'\n\n\n\n'}
         {output}
       </Text>

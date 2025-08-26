@@ -1,7 +1,8 @@
 import { Canvas, extend } from '@react-three/fiber'
-import { button, Leva, useControls } from 'leva'
-import { lazy, Suspense } from 'react'
+import { Leva, button, useControls } from 'leva'
+import { Suspense, lazy } from 'react'
 import { FilmPass, LUTPass, UnrealBloomPass, WaterPass } from 'three-stdlib'
+import FX from './Scene/effects'
 
 extend({ FilmPass, LUTPass, UnrealBloomPass, WaterPass })
 
@@ -30,10 +31,11 @@ export default function App() {
 
   return (
     <>
-      <Canvas camera={{ zoom: 600 }} orthographic>
+      <Canvas camera={{ zoom: 600 }} gl={{ antialias: true }} orthographic>
         <Suspense>
           <Scene />
           <Env />
+          <FX />
         </Suspense>
       </Canvas>
 
