@@ -7,7 +7,6 @@ const Geometry = lazy(() => import('./Geometry'))
 const Material = lazy(() => import('./Material'))
 const Output = lazy(() => import('./Output'))
 const Particle = lazy(() => import('./Particle'))
-const FX = lazy(() => import('./effects'))
 
 export default function Scene() {
   const ref = useRef<THREE.Group>(null!)
@@ -20,17 +19,23 @@ export default function Scene() {
   const particles = useMemo(
     () =>
       Array.from({ length: gridSize }).flatMap((_, x) =>
-        Array.from({ length: gridSize }).map((__, y) => (
-          <Particle
-            id={x * gridSize ** 2 + y * gridSize + x}
-            key={x * gridSize ** 2 + y * gridSize + x}
-            position={[
-              (x - gridSize / 2 + 0.5) * spacing,
-              0,
-              (y - gridSize / 2 + 0.5) * spacing
-            ]}
-          />
-        ))
+        Array.from({ length: gridSize }).map((__, y) => {
+          const id = x * gridSize + y
+
+          return (
+            <Particle
+              gridSize={gridSize}
+              id={id}
+              key={id}
+              position={[
+                (x - gridSize / 2 + 0.5) * spacing,
+                0,
+                (y - gridSize / 2 + 0.5) * spacing
+              ]}
+              spacing={spacing}
+            />
+          )
+        })
       ),
     [gridSize, spacing]
   )
@@ -44,7 +49,7 @@ export default function Scene() {
 
   return (
     <>
-      <group rotation={[Math.PI / 5, -Math.PI / 4, 0]} {...{ ref }}>
+      <group ref={ref} rotation={[Math.PI / 5, -Math.PI / 4, 0]}>
         <Instances range={gridSize ** 3}>
           <Geometry />
           <Material />

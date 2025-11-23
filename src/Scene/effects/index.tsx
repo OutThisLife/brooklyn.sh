@@ -4,10 +4,9 @@ import { folder, useControls } from 'leva'
 import * as THREE from 'three'
 import { UnrealBloomPass } from 'three-stdlib'
 
-import { DitheringPass } from './dithering'
 import { GrainPass } from './grain'
 
-extend({ DitheringPass, GrainPass, UnrealBloomPass })
+extend({ GrainPass, UnrealBloomPass })
 
 export default function FX() {
   const config = useControls(
@@ -28,34 +27,6 @@ export default function FX() {
         },
         bloomThreshold: { max: 1, min: 0, step: 0.01, value: 0.01 },
         enableBloom: { value: true }
-      }),
-      dithering: folder({
-        enableDithering: { value: true },
-        grayscaleOnly: { value: false },
-        gridSize: {
-          max: 20,
-          min: 1,
-          step: 0.01,
-          value: 4.11
-        },
-        pixelSizeRatio: {
-          max: 10,
-          min: 1,
-          step: 0.01,
-          value: 2.01
-        },
-        xRange: {
-          max: 1,
-          min: 0,
-          step: 0.01,
-          value: [0.3, 1]
-        },
-        yRange: {
-          max: 1,
-          min: 0,
-          step: 0.01,
-          value: [0, 1]
-        }
       }),
       grain: folder({
         blendMode: {

@@ -1,6 +1,6 @@
 import type * as THREE from 'three'
 
-import { QuadPass } from './pass'
+import { defaultVertexShader, QuadPass } from './pass'
 
 const GrainShader = {
   fragmentShader: /* glsl */ `
@@ -33,26 +33,27 @@ const GrainShader = {
 
     void main() {
       vec4 color = texture2D(tDiffuse, vUv);
-      
+
       vec2 scaledUv = vUv * size;
       float grain = rand(scaledUv + time) * 2.0 - 1.0;
       vec3 grainColor = vec3(grain) * intensity;
-      
+
       vec3 result;
-      if (blendMode == 0) { // Add
+
+      if (blendMode == 0) {
         result = color.rgb + grainColor;
-      } else if (blendMode == 1) { // Multiply
+      } else if (blendMode == 1) {
         result = color.rgb * (1.0 + grainColor);
-      } else if (blendMode == 2) { // Overlay
+      } else if (blendMode == 2) {
         result = blendOverlay(color.rgb, vec3(0.5) + grainColor);
-      } else if (blendMode == 3) { // Screen
+      } else if (blendMode == 3) {
         result = 1.0 - (1.0 - color.rgb) * (1.0 - grainColor * 0.5);
-      } else if (blendMode == 4) { // Soft Light
+      } else if (blendMode == 4) {
         result = blendSoftLight(color.rgb, vec3(0.5) + grainColor);
       } else {
         result = color.rgb;
       }
-      
+
       gl_FragColor = vec4(result, color.a);
     }
   `,
@@ -63,14 +64,7 @@ const GrainShader = {
     tDiffuse: { value: null as THREE.Texture | null },
     time: { value: 0 }
   },
-  vertexShader: /* glsl */ `
-    varying vec2 vUv;
-    
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1);
-    }
-  `
+  vertexShader: defaultVertexShader
 }
 
 export class GrainPass extends QuadPass {

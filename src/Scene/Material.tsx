@@ -55,7 +55,7 @@ vec2 mv = (vMouse - p).xy;
     ),
     min(isBottom + isBack, 1.)
   );
-  
+
   float d = 1. - smoothstep(.2, .745, length(mv));
   lin.rgb = mix(lin.rgb, 1. - lin.rgb, d);
 
@@ -68,9 +68,9 @@ vec2 mv = (vMouse - p).xy;
   float lum = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
 
   vec3 lin = vec3(1. - lum);
-  lin = diffuseColor.rgb + ( 1. - 2. * lum);
-  
-  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.23, d); 
+  lin = diffuseColor.rgb + (1. - 2. * lum);
+
+  diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * 1.23, d);
 }
 `
 
@@ -100,21 +100,18 @@ export default function Material(props: MeshStandardMaterialProps) {
       v.vertexShader = v.vertexShader
         .replace(
           '#include <common>',
-          `
-          #include <common>
+          `#include <common>
           varying vec3 vPos;
           varying vec3 vMouse;
 
-          uniform vec3 uMouse;
-          `
+          uniform vec3 uMouse;`
         )
         .replace('#include <project_vertex>', vertex)
 
       v.fragmentShader = v.fragmentShader
         .replace(
           '#include <common>',
-          `
-          #include <common>
+          `#include <common>
 
           varying vec3 vPos;
           varying vec3 vMouse;
@@ -130,8 +127,7 @@ export default function Material(props: MeshStandardMaterialProps) {
               cos(a) * (uv.x - mid.x) + sin(a) * (uv.y - mid.y) + mid.x,
               cos(a) * (uv.y - mid.y) - sin(a) * (uv.x - mid.x) + mid.y
             );
-          }
-          `
+          }`
         )
         .replace('#include <map_fragment>', fragment)
     },
@@ -145,7 +141,9 @@ export default function Material(props: MeshStandardMaterialProps) {
 
     uniforms.uTime.value = clock.getElapsedTime()
 
-    if (!scene.getObjectByName('cursor')) {
+    let cursor = scene.getObjectByName('cursor') as THREE.Mesh | null
+
+    if (!cursor) {
       const mat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         opacity: 0.1,
@@ -158,34 +156,33 @@ export default function Material(props: MeshStandardMaterialProps) {
       mesh.add(edge)
       mesh.name = 'cursor'
       scene.add(mesh)
+
+      cursor = mesh
     }
 
-    scene
-      .getObjectByName('cursor')
-      ?.position.copy(uniforms.uMouse.value.setZ(2))
+    cursor.position.copy(uniforms.uMouse.value.setZ(2))
+
+    const mouseStr = `vec3(${uniforms.uMouse.value
+      .toArray()
+      .map(i => i.toFixed(2))
+      .join(', ')})`
+    const timeStr = uniforms.uTime.value.toFixed(2)
 
     $output.set(
       `${vertex}\n${fragment}`
-        .replace(
-          /uMouse/gm,
-          `vec3(${uniforms.uMouse.value
-            .toArray()
-            .map(i => i.toFixed(2))
-            .join(', ')})`
-        )
-        .replace(/uTime/gm, uniforms.uTime.value.toFixed(2))
+        .replace(/uMouse/gm, mouseStr)
+        .replace(/uTime/gm, timeStr)
         .trim()
     )
   })
 
   return (
-    <>
-      <meshStandardMaterial
-        key={`${vertex}.${fragment}`}
-        metalness={0}
-        roughness={0.5}
-        {...{ onBeforeCompile, ...props }}
-      />
-    </>
+    <meshStandardMaterial
+      key={`${vertex}.${fragment}`}
+      metalness={0}
+      onBeforeCompile={onBeforeCompile}
+      roughness={0.5}
+      {...props}
+    />
   )
 }

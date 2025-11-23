@@ -5,31 +5,26 @@ import { useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
 
 export default function Particle({
+  gridSize,
   id = 0,
   seed = Math.random(),
+  spacing,
   ...props
 }: ParticleProps) {
   const ref = useRef<any>(null!)
 
-  const { color, gridSize, spacing } = useControls({
-    color: { label: 'Color', value: '#f51155' },
-    gridSize: { label: 'Grid Size', max: 20, min: 1, step: 2, value: 10 },
-    spacing: { label: 'Spacing', max: 1, min: 0.1, value: 0.4 }
+  const { color } = useControls({
+    color: { label: 'Color', value: '#f51155' }
   })
 
-  const scale = useMemo(() => {
-    const x = 10 * 0.4
-    const y = gridSize * spacing
-
-    return 1.2 / (x * (y / x))
-  }, [gridSize, spacing])
+  const scale = useMemo(() => 1.2 / (gridSize * spacing), [gridSize, spacing])
 
   useEffect(() => {
     const duration = Math.PI / 2 + seed * Math.PI
     const delay = seed * 1.8 + 0.2
     const scalar = seed * 0.05 - 0.05
 
-    const fn = () => ({
+    const getRotation = () => ({
       [Math.random() < 0.5 ? 'x' : 'z']: `+=${Math.PI * 0.5}`,
       ease: ['power2.inOut', 'power3.inOut', 'power4.inOut'][
         Math.floor(seed * 3)
@@ -38,27 +33,32 @@ export default function Particle({
 
     const tl = gsap.timeline({
       defaults: { delay, duration, ease: 'power2.inOut' },
-      onRepeat: () => void tl.clear().to(ref.current?.rotation, fn()),
-      onStart: () =>
-        void gsap.to(ref.current?.scale, {
+      onRepeat: () => {
+        tl.clear().to(ref.current?.rotation, getRotation())
+      },
+      onStart: () => {
+        gsap.to(ref.current?.scale, {
           delay,
           duration: 2,
           ease: 'sine.inOut',
-          onComplete: () => void gsap.set(ref.current?.scale, { x: scale, y: scale, z: scale }),
+          onComplete: () => {
+            gsap.set(ref.current?.scale, { x: scale, y: scale, z: scale })
+          },
           repeat: 1,
           x: `+=${scalar}`,
           y: `+=${scalar}`,
           yoyo: true,
           z: `+=${scalar}`
-        }),
+        })
+      },
       repeat: -1,
       repeatDelay: 2 + seed
     })
 
-    tl.clear().to(ref.current?.rotation, fn())
+    tl.clear().to(ref.current?.rotation, getRotation())
 
-    return () => void tl.kill()
-  }, [])
+    return () => tl.kill()
+  }, [seed, scale])
 
   useEffect(() => {
     if (id === Math.round(gridSize ** 3 * 0.434)) {
@@ -68,9 +68,11 @@ export default function Particle({
     ref.current?.scale?.setScalar(scale)
   }, [gridSize, id, scale])
 
-  return <Instance {...{ color, ref, ...props }} />
+  return <Instance color={color} ref={ref} {...props} />
 }
 
 interface ParticleProps extends InstanceProps {
+  gridSize: number
   seed?: number
+  spacing: number
 }

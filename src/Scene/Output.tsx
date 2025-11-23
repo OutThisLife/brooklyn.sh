@@ -11,10 +11,8 @@ export default function Output() {
   const { height, width } = useThree(st => st.viewport)
   const output = useStore($output)
 
-  const [w, h] = useMemo(
-    () => [width / 2 - 0.05, height / 2 - 0.05],
-    [width, height]
-  )
+  const w = width / 2 - 0.05
+  const h = height / 2 - 0.05
 
   const { fillOpacity } = useControls({
     fillOpacity: {
@@ -38,9 +36,9 @@ export default function Output() {
       <Text
         anchorX="left"
         anchorY="top"
+        fillOpacity={fillOpacity}
         fontSize={0.02}
         letterSpacing={-0.03}
-        {...{ fillOpacity }}
       >
         {'\n\n\n\n'}
         {output}

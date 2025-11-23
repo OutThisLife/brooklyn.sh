@@ -14,9 +14,11 @@ export default function App() {
     'Email Me': button(() =>
       window.open('mailto:brooklyn.bb.nicholson@gmail.com', '_blank')
     ),
+
     GitHub: button(() =>
       window.open('//github.com/outthislife', '_blank', 'noopener,noreferrer')
     ),
+
     LinkedIn: button(() =>
       window.open(
         '//linkedin.com/in/bbbrooklyn',
@@ -24,6 +26,7 @@ export default function App() {
         'noopener,noreferrer'
       )
     ),
+
     Resume: button(() =>
       window.open('/resume.pdf', '_blank', 'noopener,noreferrer')
     )

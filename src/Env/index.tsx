@@ -16,7 +16,6 @@ export default function Env() {
       <Environment environmentIntensity={0.24} preset="city" />
 
       <Effects disableGamma>
-        {/* @ts-ignore */}
         <unrealBloomPass args={[undefined, 0.3, 1, 0]} />
       </Effects>
     </>
