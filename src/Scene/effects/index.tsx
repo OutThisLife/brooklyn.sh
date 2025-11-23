@@ -24,7 +24,7 @@ export default function FX() {
           max: 3,
           min: 0,
           step: 0.01,
-          value: .25
+          value: 0.25
         },
         bloomThreshold: { max: 1, min: 0, step: 0.01, value: 0.01 },
         enableBloom: { value: true }
@@ -48,7 +48,7 @@ export default function FX() {
           max: 1,
           min: 0,
           step: 0.01,
-          value: [.3, 1]
+          value: [0.3, 1]
         },
         yRange: {
           max: 1,
@@ -94,19 +94,6 @@ export default function FX() {
 
   return (
     <Effects anisotropy={16} disableGamma multisamping={0}>
-      <ditheringPass
-        args={[
-          {
-            grayscaleOnly: config.grayscaleOnly,
-            gridSize: config.gridSize,
-            pixelSizeRatio: config.pixelSizeRatio,
-            xRange: config.xRange as [number, number],
-            yRange: config.yRange as [number, number]
-          }
-        ]}
-        enabled={config.enableDithering}
-      />
-
       <grainPass
         args={[
           {
