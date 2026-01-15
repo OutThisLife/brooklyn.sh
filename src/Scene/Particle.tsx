@@ -9,6 +9,7 @@ export default function Particle({
   highlight,
   id = 0,
   seed,
+  spacing,
   ...props
 }: ParticleProps) {
   const ref = useRef<any>(null!)
@@ -18,7 +19,7 @@ export default function Particle({
     [id, seed]
   )
 
-  const scale = useMemo(() => (4 / gridSize) * 0.85, [gridSize])
+  const scale = useMemo(() => spacing * 0.9, [spacing])
 
   const { color } = useControls({
     color: { label: 'Color', value: '#f51155' }
@@ -83,4 +84,5 @@ interface ParticleProps extends InstanceProps {
   gridSize: number
   highlight?: boolean
   seed?: number
+  spacing: number
 }

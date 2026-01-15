@@ -9,15 +9,25 @@ const Material = lazy(() => import('./Material'))
 const Output = lazy(() => import('./Output'))
 const Particle = lazy(() => import('./Particle'))
 
+const gridRot = new THREE.Euler(Math.PI / 5, -Math.PI / 4, 0)
+const gridQ = new THREE.Quaternion().setFromEuler(gridRot)
+const gridInvQ = gridQ.clone().invert()
+
 export default function Scene() {
   const ref = useRef<THREE.Group>(null!)
   const { viewport } = useThree()
 
   const { gridSize } = useControls({
-    gridSize: { label: 'Grid Size', max: 20, min: 1, value: 10 }
+    gridSize: { label: 'Grid Size', max: 20, min: 1, value: 16 }
   })
 
-  const spacing = useMemo(() => 4 / gridSize, [gridSize])
+  const gridSpan = useMemo(
+    () => Math.max(4, Math.max(viewport.width, viewport.height) * 1.1),
+    [viewport]
+  )
+
+  const steps = Math.max(gridSize - 1, 1)
+  const spacing = useMemo(() => gridSpan / steps, [gridSpan, steps])
 
   const highlight = useMemo(() => {
     const x = (viewport.width / 2) * 0.4
@@ -26,12 +36,8 @@ export default function Scene() {
     const rayOrigin = new THREE.Vector3(x, y, 10)
     const rayDir = new THREE.Vector3(0, 0, -1)
 
-    const rotation = new THREE.Euler(Math.PI / 5, -Math.PI / 4, 0)
-    const quaternion = new THREE.Quaternion().setFromEuler(rotation)
-    const inverseQuaternion = quaternion.clone().invert()
-
-    rayOrigin.applyQuaternion(inverseQuaternion)
-    rayDir.applyQuaternion(inverseQuaternion)
+    rayOrigin.applyQuaternion(gridInvQ)
+    rayDir.applyQuaternion(gridInvQ)
 
     if (Math.abs(rayDir.y) < 0.0001) return -1
 
@@ -67,16 +73,13 @@ export default function Scene() {
             highlight={i === highlight}
             id={i}
             key={`${gridSize}-${i}`}
-            position={[
-              (x - gridSize / 2 + 0.5) * spacing,
-              0,
-              (y - gridSize / 2 + 0.5) * spacing
-            ]}
+            position={[(x - steps / 2) * spacing, 0, (y - steps / 2) * spacing]}
+            spacing={spacing}
           />
         )
       })
     }
-  }, [gridSize, spacing, highlight])
+  }, [gridSize, spacing, highlight, steps])
 
   useEffect(() => {
     ref.current?.updateMatrix()
