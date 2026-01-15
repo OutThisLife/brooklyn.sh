@@ -6,28 +6,33 @@ import { useEffect, useMemo, useRef } from 'react'
 
 export default function Particle({
   gridSize,
+  highlight,
   id = 0,
-  seed = Math.random(),
-  spacing,
+  seed,
   ...props
 }: ParticleProps) {
   const ref = useRef<any>(null!)
+
+  const stableSeed = useMemo(
+    () => seed ?? (id * 0.618033988749895) % 1,
+    [id, seed]
+  )
+
+  const scale = useMemo(() => (4 / gridSize) * 0.85, [gridSize])
 
   const { color } = useControls({
     color: { label: 'Color', value: '#f51155' }
   })
 
-  const scale = useMemo(() => 1.2 / (gridSize * spacing), [gridSize, spacing])
-
   useEffect(() => {
-    const duration = Math.PI / 2 + seed * Math.PI
-    const delay = seed * 1.8 + 0.2
-    const scalar = seed * 0.05 - 0.05
+    const duration = Math.PI / 2 + stableSeed * Math.PI
+    const delay = stableSeed * 1.8 + 0.2
+    const scalar = stableSeed * 0.05 - 0.05
 
     const getRotation = () => ({
-      [Math.random() < 0.5 ? 'x' : 'z']: `+=${Math.PI * 0.5}`,
+      [stableSeed < 0.5 ? 'x' : 'z']: `+=${Math.PI * 0.5}`,
       ease: ['power2.inOut', 'power3.inOut', 'power4.inOut'][
-        Math.floor(seed * 3)
+        Math.floor(stableSeed * 3)
       ]
     })
 
@@ -52,27 +57,30 @@ export default function Particle({
         })
       },
       repeat: -1,
-      repeatDelay: 2 + seed
+      repeatDelay: 2 + stableSeed
     })
 
     tl.clear().to(ref.current?.rotation, getRotation())
 
-    return () => tl.kill()
-  }, [seed, scale])
+    return () => {
+      tl.kill()
+    }
+  }, [stableSeed, scale])
 
   useEffect(() => {
-    if (id === Math.round(gridSize ** 3 * 0.434)) {
-      ref.current?.color?.set(0xffffff)
-    }
+    highlight && ref.current?.color?.set(0xffffff)
 
-    ref.current?.scale?.setScalar(scale)
-  }, [gridSize, id, scale])
+    if (ref.current) {
+      ref.current.scale.setScalar(scale)
+      ref.current.updateMatrix()
+    }
+  }, [gridSize, highlight, scale])
 
   return <Instance color={color} ref={ref} {...props} />
 }
 
 interface ParticleProps extends InstanceProps {
   gridSize: number
+  highlight?: boolean
   seed?: number
-  spacing: number
 }

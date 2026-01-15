@@ -1,6 +1,7 @@
 import { Effects, Environment } from '@react-three/drei'
 import { extend } from '@react-three/fiber'
 import { useControls } from 'leva'
+import * as THREE from 'three'
 import { UnrealBloomPass } from 'three-stdlib'
 
 extend({ UnrealBloomPass })
@@ -16,7 +17,7 @@ export default function Env() {
       <Environment environmentIntensity={0.24} preset="city" />
 
       <Effects disableGamma>
-        <unrealBloomPass args={[undefined, 0.3, 1, 0]} />
+        <unrealBloomPass args={[new THREE.Vector2(1024, 1024), 0.3, 1, 0]} />
       </Effects>
     </>
   )

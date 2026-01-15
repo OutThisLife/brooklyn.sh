@@ -3,7 +3,8 @@ import type { MeshStandardMaterialProps } from '@react-three/fiber'
 import { useFrame } from '@react-three/fiber'
 import { useCallback, useMemo } from 'react'
 import * as THREE from 'three'
-import { type WebGLProgramParametersWithUniforms } from 'three'
+import type { WebGLProgramParametersWithUniforms } from 'three'
+
 import { $output } from './Output'
 
 export const vertex = /* glsl */ `
@@ -16,7 +17,6 @@ vec4 mvPosition = vec4(transformed, 1);
   mvPosition = instanceMatrix * mvPosition;
   vPos = mvPosition.xyz;
   vMouse = uMouse - (mvPosition - instanceOrigin).xyz;
-
 #else
   vPos = position;
   vMouse = uMouse - position;
@@ -49,9 +49,13 @@ vec2 mv = (vMouse - p).xy;
   vec4 lin = mix(
     vec4(0),
     mix(
+      mix(
+        texture2D(uChannel0, p),
+        texture2D(uChannel1, p),
+        isBottom
+      ),
       texture2D(uChannel0, p),
-      texture2D(uChannel1, p),
-      isBottom
+      step(0.9, diffuseColor.g)
     ),
     min(isBottom + isBack, 1.)
   );
@@ -89,12 +93,7 @@ export default function Material(props: MeshStandardMaterialProps) {
 
   const onBeforeCompile = useCallback(
     (v: WebGLProgramParametersWithUniforms) => {
-      v.defines = {
-        ...v.defines,
-        USE_ALPHAHASH: true,
-        USE_UV: true
-      }
-
+      v.defines = { ...v.defines, USE_ALPHAHASH: true, USE_UV: true }
       v.uniforms = { ...v.uniforms, ...uniforms }
 
       v.vertexShader = v.vertexShader
@@ -103,7 +102,6 @@ export default function Material(props: MeshStandardMaterialProps) {
           `#include <common>
           varying vec3 vPos;
           varying vec3 vMouse;
-
           uniform vec3 uMouse;`
         )
         .replace('#include <project_vertex>', vertex)
@@ -156,22 +154,21 @@ export default function Material(props: MeshStandardMaterialProps) {
       mesh.add(edge)
       mesh.name = 'cursor'
       scene.add(mesh)
-
       cursor = mesh
     }
 
     cursor.position.copy(uniforms.uMouse.value.setZ(2))
 
-    const mouseStr = `vec3(${uniforms.uMouse.value
-      .toArray()
-      .map(i => i.toFixed(2))
-      .join(', ')})`
-    const timeStr = uniforms.uTime.value.toFixed(2)
-
     $output.set(
       `${vertex}\n${fragment}`
-        .replace(/uMouse/gm, mouseStr)
-        .replace(/uTime/gm, timeStr)
+        .replace(
+          /uMouse/gm,
+          `vec3(${uniforms.uMouse.value
+            .toArray()
+            .map(i => i.toFixed(2))
+            .join(', ')})`
+        )
+        .replace(/uTime/gm, uniforms.uTime.value.toFixed(2))
         .trim()
     )
   })

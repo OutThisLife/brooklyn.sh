@@ -4,19 +4,25 @@
 
 :root {
   --columns: 40;
-
   --vsq: calc(0.5dvw + 0.5dvh);
   --cell: calc((var(--vsq) * 50) / var(--columns));
   --pad-scale: 3;
   --pad: calc(var(--vsq) * var(--pad-scale));
-
   --easing: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 * {
+  @apply box-border;
+}
+
+html,
+body,
+#root {
   @apply 
-  box-border m-0 p-0
-  focus:outline-none;
+  fixed inset-0 
+  w-dvw h-dvh 
+  overflow-hidden overscroll-none
+  touch-none select-none;
 }
 
 html {
@@ -26,19 +32,14 @@ html {
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   font-feature-settings: 'ss01' on, 'calt' off;
-  font-size: 0.875rem;
   font-size: clamp(0.8125rem, 0.75rem + 0.2vw, 1rem);
   line-height: 1.75;
-  overflow-anchor: none;
-  scroll-behavior: smooth;
   text-rendering: optimizeLegibility;
 }
 
-main {
-  @apply w-svw h-svh overflow-hidden;
-}
-
-img, video, svg {
+img,
+video,
+svg {
   @apply max-w-full h-auto;
 }
 
@@ -47,17 +48,19 @@ strong {
 }
 
 ::-webkit-scrollbar {
-  @apply w-1 h-1;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-white
+  @apply hidden;
 }
 
 #root > div[class*="leva"] {
-  @apply absolute top-auto bottom-5 right-5;
+  @apply absolute top-auto bottom-5 right-5 z-50;
 
   button {
     @apply px-2 font-medium font-sans;
+  }
+}
+
+@media (pointer: coarse) {
+  html {
+    @apply cursor-auto;
   }
 }

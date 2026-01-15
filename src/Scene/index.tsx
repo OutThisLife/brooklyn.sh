@@ -1,4 +1,5 @@
 import { Instances } from '@react-three/drei'
+import { useThree } from '@react-three/fiber'
 import { useControls } from 'leva'
 import { lazy, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
@@ -10,50 +11,86 @@ const Particle = lazy(() => import('./Particle'))
 
 export default function Scene() {
   const ref = useRef<THREE.Group>(null!)
+  const { viewport } = useThree()
 
-  const { gridSize, spacing } = useControls({
-    gridSize: { label: 'Grid Size', max: 20, min: 1, value: 10 },
-    spacing: { label: 'Spacing', max: 1, min: 0.1, value: 0.4 }
+  const { gridSize } = useControls({
+    gridSize: { label: 'Grid Size', max: 20, min: 1, value: 10 }
   })
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: gridSize }).flatMap((_, x) =>
-        Array.from({ length: gridSize }).map((__, y) => {
-          const id = x * gridSize + y
+  const spacing = useMemo(() => 4 / gridSize, [gridSize])
 
-          return (
-            <Particle
-              gridSize={gridSize}
-              id={id}
-              key={id}
-              position={[
-                (x - gridSize / 2 + 0.5) * spacing,
-                0,
-                (y - gridSize / 2 + 0.5) * spacing
-              ]}
-              spacing={spacing}
-            />
-          )
-        })
-      ),
-    [gridSize, spacing]
-  )
+  const highlight = useMemo(() => {
+    const x = (viewport.width / 2) * 0.4
+    const y = (viewport.height / 2) * 0.4
+
+    const rayOrigin = new THREE.Vector3(x, y, 10)
+    const rayDir = new THREE.Vector3(0, 0, -1)
+
+    const rotation = new THREE.Euler(Math.PI / 5, -Math.PI / 4, 0)
+    const quaternion = new THREE.Quaternion().setFromEuler(rotation)
+    const inverseQuaternion = quaternion.clone().invert()
+
+    rayOrigin.applyQuaternion(inverseQuaternion)
+    rayDir.applyQuaternion(inverseQuaternion)
+
+    if (Math.abs(rayDir.y) < 0.0001) return -1
+
+    const t = -rayOrigin.y / rayDir.y
+    const localX = rayOrigin.x + t * rayDir.x
+    const localZ = rayOrigin.z + t * rayDir.z
+
+    const idxX = Math.max(
+      0,
+      Math.min(gridSize - 1, Math.round(localX / spacing + gridSize / 2 - 0.5))
+    )
+
+    const idxY = Math.max(
+      0,
+      Math.min(gridSize - 1, Math.round(localZ / spacing + gridSize / 2 - 0.5))
+    )
+
+    return idxX * gridSize + idxY
+  }, [gridSize, spacing, viewport])
+
+  const { particleCount, particles } = useMemo(() => {
+    const count = gridSize ** 2
+
+    return {
+      particleCount: count,
+      particles: Array.from({ length: count }, (_, i) => {
+        const x = Math.floor(i / gridSize)
+        const y = i % gridSize
+
+        return (
+          <Particle
+            gridSize={gridSize}
+            highlight={i === highlight}
+            id={i}
+            key={`${gridSize}-${i}`}
+            position={[
+              (x - gridSize / 2 + 0.5) * spacing,
+              0,
+              (y - gridSize / 2 + 0.5) * spacing
+            ]}
+          />
+        )
+      })
+    }
+  }, [gridSize, spacing, highlight])
 
   useEffect(() => {
     ref.current?.updateMatrix()
     ref.current?.traverse(
       el => el instanceof THREE.Mesh && el.geometry.center()
     )
-  }, [gridSize, spacing])
+  }, [gridSize])
 
   return (
     <>
       <group ref={ref} rotation={[Math.PI / 5, -Math.PI / 4, 0]}>
-        <Instances range={gridSize ** 3}>
+        <Instances key={gridSize} range={particleCount}>
           <Geometry />
           <Material />
-
           {particles}
         </Instances>
       </group>

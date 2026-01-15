@@ -21,6 +21,7 @@ export class QuadPass {
 
   constructor(shader: ShaderConfig) {
     this.uniforms = THREE.UniformsUtils.clone(shader.uniforms)
+
     this.material = new THREE.ShaderMaterial({
       depthTest: false,
       depthWrite: false,
@@ -42,12 +43,9 @@ export class QuadPass {
   ) {
     const u = this.uniforms
 
-    if (u.tDiffuse) u.tDiffuse.value = readBuffer.texture
-
-    if (u.resolution)
-      u.resolution.value.set(readBuffer.width, readBuffer.height)
-
-    if (u.dpr) u.dpr.value = renderer.getPixelRatio()
+    u.tDiffuse && (u.tDiffuse.value = readBuffer.texture)
+    u.resolution && u.resolution.value.set(readBuffer.width, readBuffer.height)
+    u.dpr && (u.dpr.value = renderer.getPixelRatio())
   }
 
   protected beginRender(
@@ -55,8 +53,7 @@ export class QuadPass {
     writeBuffer: THREE.WebGLRenderTarget
   ) {
     renderer.setRenderTarget(this.renderToScreen ? null : writeBuffer)
-
-    if (this.clear && !this.renderToScreen) renderer.clear()
+    this.clear && !this.renderToScreen && renderer.clear()
   }
 
   protected renderQuad(renderer: THREE.WebGLRenderer) {
@@ -64,8 +61,7 @@ export class QuadPass {
   }
 
   setSize(width: number, height: number) {
-    if (this.uniforms.resolution)
-      this.uniforms.resolution.value.set(width, height)
+    this.uniforms.resolution?.value.set(width, height)
   }
 }
 

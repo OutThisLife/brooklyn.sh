@@ -1,6 +1,6 @@
 import type * as THREE from 'three'
 
-import { defaultVertexShader, QuadPass } from './pass'
+import { QuadPass, defaultVertexShader } from './pass'
 
 const GrainShader = {
   fragmentShader: /* glsl */ `
@@ -74,13 +74,13 @@ export class GrainPass extends QuadPass {
   constructor(options: GrainOptions = {}) {
     super(GrainShader)
 
-    if (options.intensity !== undefined)
-      this.uniforms.intensity.value = options.intensity
+    options.intensity !== undefined &&
+      (this.uniforms.intensity.value = options.intensity)
 
-    if (options.size !== undefined) this.uniforms.size.value = options.size
+    options.size !== undefined && (this.uniforms.size.value = options.size)
 
-    if (options.blendMode !== undefined)
-      this.uniforms.blendMode.value = options.blendMode
+    options.blendMode !== undefined &&
+      (this.uniforms.blendMode.value = options.blendMode)
 
     this.speed = options.speed ?? 0
   }
