@@ -1,6 +1,7 @@
 import { Effects } from '@react-three/drei'
 import { extend } from '@react-three/fiber'
 import { folder, useControls } from 'leva'
+import { useMemo } from 'react'
 import * as THREE from 'three'
 import { UnrealBloomPass } from 'three-stdlib'
 
@@ -9,6 +10,8 @@ import { GrainPass } from './grain'
 extend({ GrainPass, UnrealBloomPass })
 
 export default function FX() {
+  const bloomSize = useMemo(() => new THREE.Vector2(1024, 1024), [])
+
   const config = useControls(
     'Effects',
     {
@@ -53,13 +56,11 @@ export default function FX() {
       />
 
       <unrealBloomPass
-        args={[
-          new THREE.Vector2(1024, 1024),
-          config.bloomStrength,
-          config.bloomRadius,
-          config.bloomThreshold
-        ]}
+        args={[bloomSize, 0.25, 0.95, 0.01]}
         enabled={config.enableBloom}
+        radius={config.bloomRadius}
+        strength={config.bloomStrength}
+        threshold={config.bloomThreshold}
       />
     </Effects>
   )

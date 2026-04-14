@@ -1,7 +1,7 @@
 import { useTexture } from '@react-three/drei'
 import type { MeshStandardMaterialProps } from '@react-three/fiber'
-import { useFrame } from '@react-three/fiber'
-import { useCallback, useMemo } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { WebGLProgramParametersWithUniforms } from 'three'
 
@@ -79,7 +79,10 @@ vec2 mv = (vMouse - p).xy;
 `
 
 export default function Material(props: MeshStandardMaterialProps) {
+  const { scene } = useThree()
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
+  const cursor = useRef<THREE.Mesh | null>(null)
+  const output = useRef(0)
 
   const uniforms = useMemo(
     () => ({
@@ -90,6 +93,8 @@ export default function Material(props: MeshStandardMaterialProps) {
     }),
     [tex0, tex1]
   )
+
+  const pointer = useMemo(() => new THREE.Vector3(), [])
 
   const onBeforeCompile = useCallback(
     (v: WebGLProgramParametersWithUniforms) => {
@@ -129,41 +134,53 @@ export default function Material(props: MeshStandardMaterialProps) {
         )
         .replace('#include <map_fragment>', fragment)
     },
-    []
+    [uniforms]
   )
 
-  useFrame(({ camera, clock, pointer, scene }) => {
-    uniforms.uMouse.value.copy(
-      new THREE.Vector3(pointer.x, pointer.y, 0.5).unproject(camera).setZ(0)
-    )
+  useEffect(() => {
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      opacity: 0.1,
+      transparent: true
+    })
 
-    uniforms.uTime.value = clock.getElapsedTime()
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.01), mat)
+    const edge = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.016, 32), mat)
 
-    let cursor = scene.getObjectByName('cursor') as THREE.Mesh | null
+    mesh.add(edge)
+    mesh.name = 'cursor'
+    scene.add(mesh)
+    cursor.current = mesh
 
-    if (!cursor) {
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        opacity: 0.1,
-        transparent: true
-      })
-
-      const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.01), mat)
-      const edge = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.016, 32), mat)
-
-      mesh.add(edge)
-      mesh.name = 'cursor'
-      scene.add(mesh)
-      cursor = mesh
+    return () => {
+      scene.remove(mesh)
+      mesh.geometry.dispose()
+      edge.geometry.dispose()
+      mat.dispose()
+      cursor.current = null
     }
+  }, [scene])
 
-    cursor.position.copy(uniforms.uMouse.value.setZ(2))
+  useFrame(({ camera, clock, pointer: mouse }, delta) => {
+    pointer.set(mouse.x, mouse.y, 0.5).unproject(camera)
+    pointer.z = 0
+
+    uniforms.uMouse.value.copy(pointer)
+    uniforms.uTime.value = clock.elapsedTime
+
+    cursor.current?.position.copy(pointer)
+    cursor.current && (cursor.current.position.z = 2)
+
+    output.current += delta
+
+    if (output.current < 1 / 12) return
+    output.current = 0
 
     $output.set(
       `${vertex}\n${fragment}`
         .replace(
           /uMouse/gm,
-          `vec3(${uniforms.uMouse.value
+          `vec3(${pointer
             .toArray()
             .map(i => i.toFixed(2))
             .join(', ')})`

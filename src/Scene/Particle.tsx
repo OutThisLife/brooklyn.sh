@@ -1,18 +1,18 @@
 import type { InstanceProps } from '@react-three/drei'
 import { Instance } from '@react-three/drei'
 import gsap from 'gsap'
-import { useControls } from 'leva'
 import { useEffect, useMemo, useRef } from 'react'
+import type * as THREE from 'three'
 
 export default function Particle({
-  gridSize,
+  color,
   highlight,
   id = 0,
   seed,
   spacing,
   ...props
 }: ParticleProps) {
-  const ref = useRef<any>(null!)
+  const ref = useRef<(THREE.Object3D & { color?: THREE.Color }) | null>(null)
 
   const stableSeed = useMemo(
     () => seed ?? (id * 0.618033988749895) % 1,
@@ -21,11 +21,11 @@ export default function Particle({
 
   const scale = useMemo(() => spacing * 0.9, [spacing])
 
-  const { color } = useControls({
-    color: { label: 'Color', value: '#f51155' }
-  })
-
   useEffect(() => {
+    const current = ref.current
+
+    if (!current) return
+
     const duration = Math.PI / 2 + stableSeed * Math.PI
     const delay = stableSeed * 1.8 + 0.2
     const scalar = stableSeed * 0.05 - 0.05
@@ -40,15 +40,15 @@ export default function Particle({
     const tl = gsap.timeline({
       defaults: { delay, duration, ease: 'power2.inOut' },
       onRepeat: () => {
-        tl.clear().to(ref.current?.rotation, getRotation())
+        tl.clear().to(current.rotation, getRotation())
       },
       onStart: () => {
-        gsap.to(ref.current?.scale, {
+        gsap.to(current.scale, {
           delay,
           duration: 2,
           ease: 'sine.inOut',
           onComplete: () => {
-            gsap.set(ref.current?.scale, { x: scale, y: scale, z: scale })
+            gsap.set(current.scale, { x: scale, y: scale, z: scale })
           },
           repeat: 1,
           x: `+=${scalar}`,
@@ -61,7 +61,7 @@ export default function Particle({
       repeatDelay: 2 + stableSeed
     })
 
-    tl.clear().to(ref.current?.rotation, getRotation())
+    tl.clear().to(current.rotation, getRotation())
 
     return () => {
       tl.kill()
@@ -69,19 +69,16 @@ export default function Particle({
   }, [stableSeed, scale])
 
   useEffect(() => {
-    highlight && ref.current?.color?.set(0xffffff)
-
-    if (ref.current) {
-      ref.current.scale.setScalar(scale)
-      ref.current.updateMatrix()
-    }
-  }, [gridSize, highlight, scale])
+    ref.current?.color?.set(highlight ? 0xffffff : color)
+    ref.current?.scale.setScalar(scale)
+    ref.current?.updateMatrix()
+  }, [color, highlight, scale])
 
   return <Instance color={color} ref={ref} {...props} />
 }
 
 interface ParticleProps extends InstanceProps {
-  gridSize: number
+  color: string
   highlight?: boolean
   seed?: number
   spacing: number

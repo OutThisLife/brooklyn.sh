@@ -11,7 +11,13 @@ export default function Output() {
   const output = useStore($output)
 
   const { fillOpacity } = useControls({
-    fillOpacity: { label: 'Code Opacity', max: 1, min: 0, step: 0.01, value: 0.1 }
+    fillOpacity: {
+      label: 'Code Opacity',
+      max: 1,
+      min: 0,
+      step: 0.01,
+      value: 0.1
+    }
   })
 
   return (
@@ -27,7 +33,8 @@ export default function Output() {
         anchorY="top"
         fillOpacity={fillOpacity}
         fontSize={0.02}
-        letterSpacing={-0.03}>
+        letterSpacing={-0.03}
+      >
         {'\n\n\n\n'}
         {output}
       </Text>

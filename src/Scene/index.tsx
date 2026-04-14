@@ -1,7 +1,7 @@
 import { Instances } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { useControls } from 'leva'
-import { lazy, useEffect, useMemo, useRef } from 'react'
+import { lazy, useMemo } from 'react'
 import * as THREE from 'three'
 
 const Geometry = lazy(() => import('./Geometry'))
@@ -14,16 +14,16 @@ const gridQ = new THREE.Quaternion().setFromEuler(gridRot)
 const gridInvQ = gridQ.clone().invert()
 
 export default function Scene() {
-  const ref = useRef<THREE.Group>(null!)
   const { viewport } = useThree()
 
-  const { gridSize } = useControls({
+  const { color, gridSize } = useControls({
+    color: { label: 'Color', value: '#f51155' },
     gridSize: { label: 'Grid Size', max: 20, min: 1, value: 16 }
   })
 
   const gridSpan = useMemo(
     () => Math.max(4, Math.max(viewport.width, viewport.height) * 1.1),
-    [viewport]
+    [viewport.height, viewport.width]
   )
 
   const steps = Math.max(gridSize - 1, 1)
@@ -56,7 +56,7 @@ export default function Scene() {
     )
 
     return idxX * gridSize + idxY
-  }, [gridSize, spacing, viewport])
+  }, [gridSize, spacing, viewport.height, viewport.width])
 
   const { particleCount, particles } = useMemo(() => {
     const count = gridSize ** 2
@@ -69,7 +69,7 @@ export default function Scene() {
 
         return (
           <Particle
-            gridSize={gridSize}
+            color={color}
             highlight={i === highlight}
             id={i}
             key={`${gridSize}-${i}`}
@@ -79,18 +79,11 @@ export default function Scene() {
         )
       })
     }
-  }, [gridSize, spacing, highlight, steps])
-
-  useEffect(() => {
-    ref.current?.updateMatrix()
-    ref.current?.traverse(
-      el => el instanceof THREE.Mesh && el.geometry.center()
-    )
-  }, [gridSize])
+  }, [color, gridSize, spacing, highlight, steps])
 
   return (
     <>
-      <group ref={ref} rotation={[Math.PI / 5, -Math.PI / 4, 0]}>
+      <group rotation={[Math.PI / 5, -Math.PI / 4, 0]}>
         <Instances key={gridSize} range={particleCount}>
           <Geometry />
           <Material />
