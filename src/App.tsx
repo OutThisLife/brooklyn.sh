@@ -1,13 +1,17 @@
 import { Canvas } from '@react-three/fiber'
 import { Leva, button, useControls } from 'leva'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState } from 'react'
 
+import Cursor from './Cursor'
 import FX from './Scene/effects'
 
 const Scene = lazy(() => import('./Scene'))
 const Env = lazy(() => import('./Env'))
+const Code = lazy(() => import('./Code'))
 
 export default function App() {
+  const [stage, setStage] = useState<HTMLDivElement | null>(null)
+
   useControls('(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ 🐇', {
     'Email Me': button(() =>
       window.open('mailto:brooklyn.bb.nicholson@gmail.com', '_blank')
@@ -29,18 +33,27 @@ export default function App() {
 
   return (
     <>
-      <Canvas
-        camera={{ zoom: 600 }}
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        orthographic
-      >
+      <div className="fixed inset-0" ref={setStage}>
+        <Canvas
+          camera={{ zoom: 600 }}
+          dpr={[1, 1.5]}
+          eventPrefix="client"
+          eventSource={stage ?? undefined}
+          gl={{ antialias: true, powerPreference: 'high-performance' }}
+          orthographic>
+          <Suspense>
+            <Scene />
+            <Env />
+            <FX />
+          </Suspense>
+        </Canvas>
+
         <Suspense>
-          <Scene />
-          <Env />
-          <FX />
+          <Code />
         </Suspense>
-      </Canvas>
+
+        <Cursor />
+      </div>
 
       <Leva
         collapsed

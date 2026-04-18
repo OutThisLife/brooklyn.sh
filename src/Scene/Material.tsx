@@ -1,9 +1,9 @@
 import { useTexture } from '@react-three/drei'
 import type { MeshStandardMaterialProps } from '@react-three/fiber'
-import { useFrame, useThree } from '@react-three/fiber'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
+import { useCallback, useMemo, useRef } from 'react'
 import type { WebGLProgramParametersWithUniforms } from 'three'
+import * as THREE from 'three'
 
 import { $output } from './Output'
 
@@ -25,6 +25,9 @@ vec4 mvPosition = vec4(transformed, 1);
 mvPosition = modelViewMatrix * mvPosition;
 gl_Position = projectionMatrix * mvPosition;
 `
+
+const sgn = (n: number) => `${n >= 0 ? '+' : '-'}${Math.abs(n).toFixed(2)}`
+const pad = (s: string, w: number) => s.padStart(w, ' ')
 
 export const fragment = /* glsl */ `
 #include <map_fragment>
@@ -78,10 +81,53 @@ vec2 mv = (vMouse - p).xy;
 }
 `
 
+const indent = (s: string) =>
+  s
+    .split('\n')
+    .map(l => (l ? '  ' + l : l))
+    .join('\n')
+
+const vbody = indent(
+  vertex.trim().replace(/\buMouse\b/g, 'vec3({mx}, {my}, {mz})')
+)
+
+const fbody = indent(fragment.trim().replace(/\buTime\b/g, '{t}'))
+
+const template = `uniform vec3 uMouse;
+
+varying vec3 vPos;
+varying vec3 vMouse;
+
+void main() {
+${vbody}
+}
+
+
+uniform mat4 modelMatrix;
+uniform float uTime;
+uniform vec3 uMouse;
+uniform sampler2D uChannel0;
+uniform sampler2D uChannel1;
+
+varying vec3 vPos;
+varying vec3 vMouse;
+
+vec2 rotateUV(vec2 uv, float a, vec2 mid) {
+  return vec2(
+    cos(a) * (uv.x - mid.x) + sin(a) * (uv.y - mid.y) + mid.x,
+    cos(a) * (uv.y - mid.y) - sin(a) * (uv.x - mid.x) + mid.y
+  );
+}
+
+void main() {
+${fbody}
+}`
+  .split('\n')
+  .map((ln, i) => `${String(i + 1).padStart(3, ' ')} │ ${ln}`)
+  .join('\n')
+
 export default function Material(props: MeshStandardMaterialProps) {
-  const { scene } = useThree()
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
-  const cursor = useRef<THREE.Mesh | null>(null)
   const output = useRef(0)
 
   const uniforms = useMemo(
@@ -137,30 +183,6 @@ export default function Material(props: MeshStandardMaterialProps) {
     [uniforms]
   )
 
-  useEffect(() => {
-    const mat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
-      opacity: 0.1,
-      transparent: true
-    })
-
-    const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.01), mat)
-    const edge = new THREE.Mesh(new THREE.RingGeometry(0.015, 0.016, 32), mat)
-
-    mesh.add(edge)
-    mesh.name = 'cursor'
-    scene.add(mesh)
-    cursor.current = mesh
-
-    return () => {
-      scene.remove(mesh)
-      mesh.geometry.dispose()
-      edge.geometry.dispose()
-      mat.dispose()
-      cursor.current = null
-    }
-  }, [scene])
-
   useFrame(({ camera, clock, pointer: mouse }, delta) => {
     pointer.set(mouse.x, mouse.y, 0.5).unproject(camera)
     pointer.z = 0
@@ -168,26 +190,19 @@ export default function Material(props: MeshStandardMaterialProps) {
     uniforms.uMouse.value.copy(pointer)
     uniforms.uTime.value = clock.elapsedTime
 
-    cursor.current?.position.copy(pointer)
-    cursor.current && (cursor.current.position.z = 2)
-
     output.current += delta
 
     if (output.current < 1 / 12) return
     output.current = 0
 
-    $output.set(
-      `${vertex}\n${fragment}`
-        .replace(
-          /uMouse/gm,
-          `vec3(${pointer
-            .toArray()
-            .map(i => i.toFixed(2))
-            .join(', ')})`
-        )
-        .replace(/uTime/gm, uniforms.uTime.value.toFixed(2))
-        .trim()
-    )
+    const vals: Record<string, string> = {
+      mx: sgn(pointer.x),
+      my: sgn(pointer.y),
+      mz: sgn(pointer.z),
+      t: pad(uniforms.uTime.value.toFixed(2), 6)
+    }
+
+    $output.set({ template, vals })
   })
 
   return (
