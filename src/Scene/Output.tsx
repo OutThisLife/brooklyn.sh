@@ -2,12 +2,10 @@ import { Text } from '@react-three/drei'
 import { useThree } from '@react-three/fiber'
 import { atom } from 'nanostores'
 
-export interface Telemetry {
+export const $output = atom<{
   template: string
   vals: Record<string, string>
-}
-
-export const $output = atom<Telemetry>({ template: '', vals: {} })
+}>({ template: '', vals: {} })
 
 export default function Output() {
   const { height, width } = useThree(st => st.viewport)

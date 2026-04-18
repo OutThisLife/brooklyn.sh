@@ -27,7 +27,12 @@ gl_Position = projectionMatrix * mvPosition;
 `
 
 const sgn = (n: number) => `${n >= 0 ? '+' : '-'}${Math.abs(n).toFixed(2)}`
-const pad = (s: string, w: number) => s.padStart(w, ' ')
+
+const indent = (s: string) =>
+  s
+    .split('\n')
+    .map(l => (l ? '  ' + l : l))
+    .join('\n')
 
 export const fragment = /* glsl */ `
 #include <map_fragment>
@@ -81,25 +86,13 @@ vec2 mv = (vMouse - p).xy;
 }
 `
 
-const indent = (s: string) =>
-  s
-    .split('\n')
-    .map(l => (l ? '  ' + l : l))
-    .join('\n')
-
-const vbody = indent(
-  vertex.trim().replace(/\buMouse\b/g, 'vec3({mx}, {my}, {mz})')
-)
-
-const fbody = indent(fragment.trim().replace(/\buTime\b/g, '{t}'))
-
 const template = `uniform vec3 uMouse;
 
 varying vec3 vPos;
 varying vec3 vMouse;
 
 void main() {
-${vbody}
+${indent(vertex.trim().replace(/\buMouse\b/g, 'vec3({mx}, {my}, {mz})'))}
 }
 
 
@@ -120,7 +113,7 @@ vec2 rotateUV(vec2 uv, float a, vec2 mid) {
 }
 
 void main() {
-${fbody}
+${indent(fragment.trim().replace(/\buTime\b/g, '{t}'))}
 }`
   .split('\n')
   .map((ln, i) => `${String(i + 1).padStart(3, ' ')} │ ${ln}`)
@@ -128,7 +121,9 @@ ${fbody}
 
 export default function Material(props: MeshStandardMaterialProps) {
   const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
-  const output = useRef(0)
+
+  const tick = useRef(0)
+  const pointer = useMemo(() => new THREE.Vector3(), [])
 
   const uniforms = useMemo(
     () => ({
@@ -139,8 +134,6 @@ export default function Material(props: MeshStandardMaterialProps) {
     }),
     [tex0, tex1]
   )
-
-  const pointer = useMemo(() => new THREE.Vector3(), [])
 
   const onBeforeCompile = useCallback(
     (v: WebGLProgramParametersWithUniforms) => {
@@ -190,19 +183,21 @@ export default function Material(props: MeshStandardMaterialProps) {
     uniforms.uMouse.value.copy(pointer)
     uniforms.uTime.value = clock.elapsedTime
 
-    output.current += delta
+    tick.current += delta
 
-    if (output.current < 1 / 12) return
-    output.current = 0
+    if (tick.current < 1 / 12) return
 
-    const vals: Record<string, string> = {
-      mx: sgn(pointer.x),
-      my: sgn(pointer.y),
-      mz: sgn(pointer.z),
-      t: pad(uniforms.uTime.value.toFixed(2), 6)
-    }
+    tick.current = 0
 
-    $output.set({ template, vals })
+    $output.set({
+      template,
+      vals: {
+        mx: sgn(pointer.x),
+        my: sgn(pointer.y),
+        mz: sgn(pointer.z),
+        t: clock.elapsedTime.toFixed(2).padStart(6, ' ')
+      }
+    })
   })
 
   return (

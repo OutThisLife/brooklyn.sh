@@ -19,8 +19,6 @@ export default function Code() {
     }
   })
 
-  const parts = template.split(/\{(\w+)\}/g)
-
   return (
     <pre
       className="
@@ -34,11 +32,11 @@ export default function Code() {
         WebkitMaskImage: mask,
         maskImage: mask
       }}>
-      {parts.map((part, i) =>
+      {template.split(/\{(\w+)\}/g).map((part, i) =>
         i % 2 === 0 ? (
           part
         ) : (
-          <span key={i} style={{ color: 'rgb(255, 255, 255)' }}>
+          <span className="text-white" key={i}>
             {vals[part] ?? ''}
           </span>
         )

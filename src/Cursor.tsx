@@ -26,10 +26,19 @@ export default function Cursor() {
         willChange: 'transform'
       }}>
       <div
-        className="absolute left-0 top-0 h-[10px] w-[10px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60"
-        style={{ boxShadow: '0 0 10px rgba(255, 255, 255, 0.5)' }}
+        className="
+          absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2
+          h-[10px] w-[10px] rounded-full bg-white/60
+          shadow-[0_0_10px_rgba(255,255,255,0.5)]
+        "
       />
-      <div className="absolute left-0 top-0 h-[22px] w-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30" />
+
+      <div
+        className="
+          absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2
+          h-[22px] w-[22px] rounded-full border border-white/30
+        "
+      />
     </div>
   )
 }
