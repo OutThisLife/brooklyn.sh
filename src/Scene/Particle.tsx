@@ -6,6 +6,7 @@ import type * as THREE from 'three'
 
 export default function Particle({
   color,
+  hidden = false,
   highlight,
   id = 0,
   seed,
@@ -13,6 +14,7 @@ export default function Particle({
   ...props
 }: ParticleProps) {
   const ref = useRef<(THREE.Object3D & { color?: THREE.Color }) | null>(null)
+  const init = useRef(false)
 
   const stableSeed = useMemo(
     () => seed ?? (id * 0.618033988749895) % 1,
@@ -70,15 +72,40 @@ export default function Particle({
 
   useEffect(() => {
     ref.current?.color?.set(highlight ? 0xffffff : color)
-    ref.current?.scale.setScalar(scale)
     ref.current?.updateMatrix()
-  }, [color, highlight, scale])
+  }, [color, highlight])
+
+  useEffect(() => {
+    const c = ref.current
+
+    if (!c) return
+
+    const target = hidden ? 0.001 : scale
+
+    if (!init.current) {
+      init.current = true
+      c.scale.setScalar(target)
+      c.updateMatrix()
+      return
+    }
+
+    gsap.to(c.scale, {
+      duration: hidden ? 0.32 : 0.55,
+      ease: hidden ? 'power2.in' : 'back.out(2.4)',
+      onUpdate: () => c.updateMatrix(),
+      overwrite: 'auto',
+      x: target,
+      y: target,
+      z: target
+    })
+  }, [hidden, scale])
 
   return <Instance color={color} ref={ref} {...props} />
 }
 
 interface ParticleProps extends InstanceProps {
   color: string
+  hidden?: boolean
   highlight?: boolean
   seed?: number
   spacing: number
