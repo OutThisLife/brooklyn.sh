@@ -5,7 +5,7 @@ import { useControls } from 'leva'
 import { lazy, useMemo, useState } from 'react'
 import * as THREE from 'three'
 
-import { $poof } from './Poof'
+import { poof } from './Poof'
 
 const Geometry = lazy(() => import('./Geometry'))
 const Material = lazy(() => import('./Material'))
@@ -79,11 +79,7 @@ export default function Scene() {
 
     setHidden(s => new Set(s).add(id))
 
-    $poof.set({
-      key: performance.now(),
-      pos: cellPos(id),
-      size: spacing
-    })
+    poof(cellPos(id), spacing)
 
     window.setTimeout(
       () =>

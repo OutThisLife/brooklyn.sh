@@ -4,17 +4,39 @@ import { atom } from 'nanostores'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 
-export const $poof = atom<{
+export interface PoofEvent {
   key: number
   pos: [number, number, number]
   size: number
-} | null>(null)
+}
+
+export const $poofs = atom<PoofEvent[]>([])
+
+let nextKey = 0
+
+export const poof = (pos: [number, number, number], size: number) => {
+  $poofs.set([...$poofs.get(), { key: ++nextKey, pos, size }])
+}
+
+const kill = (key: number) => {
+  $poofs.set($poofs.get().filter(p => p.key !== key))
+}
 
 const N = 26
 
 export default function Poof() {
-  const state = useStore($poof)
+  const poofs = useStore($poofs)
 
+  return (
+    <>
+      {poofs.map(p => (
+        <PoofOne ev={p} key={p.key} />
+      ))}
+    </>
+  )
+}
+
+function PoofOne({ ev }: { ev: PoofEvent }) {
   const groupRef = useRef<THREE.Group>(null)
   const meshRefs = useRef<(THREE.Mesh | null)[]>([])
 
@@ -40,13 +62,11 @@ export default function Poof() {
   )
 
   useEffect(() => {
-    if (!state) return
-
     const root = groupRef.current
 
     if (!root) return
 
-    const { pos, size: s } = state
+    const { pos, size: s } = ev
 
     root.position.set(...pos)
 
@@ -55,7 +75,10 @@ export default function Poof() {
 
       const { delay, dir, origin, reach, size } = seeds[i]
       const start = origin.clone().multiplyScalar(s * 0.5)
-      const end = dir.clone().multiplyScalar(s * reach).add(start)
+      const end = dir
+        .clone()
+        .multiplyScalar(s * reach)
+        .add(start)
       const dot = s * 0.055 * size
       const mat = mesh.material as THREE.MeshBasicMaterial
 
@@ -97,12 +120,10 @@ export default function Poof() {
       ]
     })
 
-    tweens.push(gsap.delayedCall(1.05, () => $poof.set(null)))
+    tweens.push(gsap.delayedCall(1.05, () => kill(ev.key)))
 
     return () => tweens.forEach(t => t.kill())
-  }, [state, seeds])
-
-  if (!state) return null
+  }, [ev, seeds])
 
   return (
     <group ref={groupRef}>
