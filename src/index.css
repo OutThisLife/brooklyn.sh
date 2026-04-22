@@ -51,6 +51,12 @@ strong {
   @apply hidden;
 }
 
+::selection {
+  @apply text-white;
+
+  background: rgba(0, 0, 0, 0.95);
+}
+
 #root > div[class*="leva"] {
   @apply absolute top-auto bottom-5 right-5 z-50;
 
