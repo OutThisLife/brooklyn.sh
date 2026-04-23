@@ -13,6 +13,9 @@ export default function App() {
   const [stage, setStage] = useState<HTMLDivElement | null>(null)
 
   useControls('(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ 🐇', {
+    x: button(() =>
+      window.open('//x.com/imbabybrooklyn', '_blank', 'noopener,noreferrer')
+    ),
     'Email Me': button(() =>
       window.open('mailto:brooklyn.bb.nicholson@gmail.com', '_blank')
     ),
