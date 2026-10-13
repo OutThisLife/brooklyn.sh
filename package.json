@@ -15,6 +15,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@nanostores/react": "^0.7.2",
     "@react-spring/three": "^9.7.4",
