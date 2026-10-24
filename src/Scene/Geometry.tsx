@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
+import { toCreasedNormals } from 'three-stdlib'
 
 import { createShape, eps } from '../../utils'
 
@@ -15,7 +16,11 @@ export default function Geometry() {
 
     geometry.center()
 
-    return geometry
+    const smooth = toCreasedNormals(geometry, Math.PI / 4)
+
+    geometry.dispose()
+
+    return smooth
   }, [])
 
   useEffect(() => () => geometry.dispose(), [geometry])
