@@ -1,6 +1,6 @@
 import { useTexture } from '@react-three/drei'
 import type { MeshStandardMaterialProps } from '@react-three/fiber'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { useCallback, useMemo, useRef } from 'react'
 import type { WebGLProgramParametersWithUniforms } from 'three'
 import * as THREE from 'three'
@@ -120,7 +120,15 @@ ${indent(fragment.trim().replace(/\buTime\b/g, '{t}'))}
   .join('\n')
 
 export default function Material(props: MeshStandardMaterialProps) {
-  const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'])
+  const gl = useThree(s => s.gl)
+
+  const [tex0, tex1] = useTexture(['/tex0.png', '/tex1.png'], textures => {
+    textures.forEach(t => {
+      t.anisotropy = gl.capabilities.getMaxAnisotropy()
+      t.colorSpace = THREE.SRGBColorSpace
+      t.needsUpdate = true
+    })
+  })
 
   const tick = useRef(0)
   const pointer = useMemo(() => new THREE.Vector3(), [])

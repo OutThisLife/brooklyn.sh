@@ -22,14 +22,14 @@ export default function Code() {
   return (
     <pre
       className="
-        pointer-events-auto fixed inset-y-20 left-7 z-10 m-0
-        max-w-[55vw] overflow-x-hidden overflow-y-auto
+        pointer-events-auto fixed inset-y-20 left-7 z-10 m-0 hidden
+        max-w-[55vw] md:block overflow-x-hidden overflow-y-auto
         touch-pan-y select-text whitespace-pre
         font-mono text-[11px] leading-snug tracking-tight
       "
       style={{
-        color: `rgba(255, 255, 255, ${fillOpacity})`,
         WebkitMaskImage: mask,
+        color: `rgba(255, 255, 255, ${fillOpacity})`,
         maskImage: mask
       }}>
       {template.split(/\{(\w+)\}/g).map((part, i) =>

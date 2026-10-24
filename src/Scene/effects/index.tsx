@@ -1,5 +1,5 @@
 import { Effects } from '@react-three/drei'
-import { extend } from '@react-three/fiber'
+import { extend, useThree } from '@react-three/fiber'
 import { folder, useControls } from 'leva'
 import { useMemo } from 'react'
 import * as THREE from 'three'
@@ -10,7 +10,13 @@ import { GrainPass } from './grain'
 extend({ GrainPass, UnrealBloomPass })
 
 export default function FX() {
-  const bloomSize = useMemo(() => new THREE.Vector2(1024, 1024), [])
+  const { size, viewport } = useThree()
+
+  const bloomSize = useMemo(
+    () =>
+      new THREE.Vector2(size.width * viewport.dpr, size.height * viewport.dpr),
+    [size.height, size.width, viewport.dpr]
+  )
 
   const config = useControls(
     'Effects',
@@ -42,7 +48,7 @@ export default function FX() {
   )
 
   return (
-    <Effects anisotropy={16} disableGamma multisamping={0}>
+    <Effects anisotropy={16} disableGamma multisamping={8}>
       <grainPass
         args={[
           {
